@@ -30,15 +30,12 @@ public class ExamenServiceImpl implements ExamenService {
     public Examen findExamenPorNombreConPreguntas(String nombre) {
         Optional<Examen> examenOptional = this.findExamenPorNombre(nombre);
         Examen examen = null;
-        try {
+
             if (examenOptional.isPresent()) {
                 examen = examenOptional.get();
                 List<String> preguntas = this.preguntaRepository.findPorExamenId(examen.getId());
                 examen.setPreguntas(preguntas);
             }
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        }
 
         return examen;
     }

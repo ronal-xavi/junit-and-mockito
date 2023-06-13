@@ -3,6 +3,7 @@ package com.ronal.services;
 import com.ronal.models.Examen;
 import com.ronal.repository.ExamenRepository;
 import com.ronal.repository.PreguntaRepository;
+import com.ronal.utils.DatosUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -132,18 +133,33 @@ class ExamenServiceImplTest {
 
     }
 
+    /**
+     * Con thenThrow lanzamos una excepción.
+     * Para poder comprobar la excepción podemos usar el assertThrows haciendo referencia al método.
+     * Para mandar parámetros null podemos utilizar el Mockito.isNull(). Es mejor.
+     */
     @Test
     void testManejoDeException() {
         this.examen.setNombre("Matemática");
-        Mockito.when(this.examenRepository.findAll())
-                .thenReturn(Collections.singletonList(this.examen));
 
-        Mockito.when(this.preguntaRepository.findPorExamenId(Mockito.anyLong()))
+        Mockito.when(this.examenRepository.findAll())
+                .thenReturn(DatosUtils.EXAMENES_ID_NULL);
+
+        Mockito.when(this.preguntaRepository.findPorExamenId(Mockito.isNull()))
                 .thenThrow(IllegalArgumentException.class);
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+        final IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
             this.examenService.findExamenPorNombreConPreguntas("Matemática");
         });
+
+        Assertions.assertEquals(IllegalArgumentException.class,exception.getClass());
+
+    }
+
+    @Test
+    void testArgumentMatches() {
+        Mockito.when(examenRepository.findAll())
+            .thenReturn(DatosUtils.EXAMENES);
 
     }
 
