@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -156,10 +157,43 @@ class ExamenServiceImplTest {
 
     }
 
+    /**
+     * ArgumentMatches = sirve para hacer nuestras validaciones de forma más personalizada
+     * lo usamos en el Mockito.verify.
+     * Esto es para parámetros de métodos.
+     */
+
     @Test
     void testArgumentMatches() {
         Mockito.when(examenRepository.findAll())
             .thenReturn(DatosUtils.EXAMENES);
+
+        Mockito.when(this.preguntaRepository.findPorExamenId(Mockito.anyLong()))
+            .thenReturn(DatosUtils.PREGUNTAS);
+
+        this.examenService.findExamenPorNombreConPreguntas("Matemática");
+
+        Mockito.verify(examenRepository).findAll();
+        Mockito.verify(preguntaRepository).findPorExamenId(Mockito.argThat(x -> x != null && x.equals(5L)));
+
+    }
+    /**
+    * ArgumentMatches personalizados con clases:
+    * tenemos que crear una clase personalizada donde hacemos la validación
+    * y retornamos un mensaje de error.
+    * */
+    @Test
+    void testArgumentMatches_con_clase_personalizada() {
+        Mockito.when(examenRepository.findAll())
+            .thenReturn(DatosUtils.EXAMENES_ID_NEGATIVOS);
+
+        Mockito.when(this.preguntaRepository.findPorExamenId(Mockito.anyLong()))
+            .thenReturn(DatosUtils.PREGUNTAS);
+
+        this.examenService.findExamenPorNombreConPreguntas("Matemática");
+
+        Mockito.verify(examenRepository).findAll();
+        Mockito.verify(preguntaRepository).findPorExamenId(Mockito.argThat(new MiArgsMatchers()));
 
     }
 
@@ -168,6 +202,23 @@ class ExamenServiceImplTest {
         examen.setId(1L);
         examen.setNombre("Física");
 
+    }
+
+    public static class MiArgsMatchers implements ArgumentMatcher<Long>{
+
+        private Long arg;
+        @Override
+        public boolean matches(Long aLong) {
+            this.arg = aLong;
+            return aLong != null && aLong > 0;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Es para un mensaje personalizado de error que imprime"
+                + " mockito en caso de que falle algun test"
+                + "debe ser un entero positivo :%s ", arg);
+        }
     }
 
 
